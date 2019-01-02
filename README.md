@@ -3,12 +3,10 @@
 ## 1.Intro
 본 노트는 Windows kernel fuzzer를 조사 목적으로 작성한다. 정리는 아래와 같은 양식으로 정리한다. 
 
-- Name
-- Purpose
-- Support OS
-- Key ideas
-- Pros and Cons
-- Limitation
+* Name
+* Purpose
+* Support OS
+* Key ideas
 
 ## 2.Syzkaller
 ### Purpose
@@ -19,13 +17,31 @@ OS Kernel: Linux kernel, Akaros, Darwin/XNU, FreeBSD, Fuchsia, NetBSD, OpenBSD, 
 
 ### Key ideas
 
-### Pros and Cons
 
 
 ### Limitation
 Windows OS는 GCE(Google Computer Engine) 가상머신(VM)만  지원
 
-## 3.WinAFL+IntelPT
+## 3.WinAFL+IntelPT (yet uploaded)
+### Purpose
+
+### Support OS
+
+### Key ideas
+1) In-memory fuzzing (Persistence Fuzzing Mode) : WinAFL (without Intel PT)
+  Windows does not use COW(Copy-on-Write) and therefore fork-like mechanisms are not efficient on Windows
+  - Persistence is key
+    * Restart process each time (disable persistence) ~2.3 exec/s
+    * Persist   100 iterations before restart ~72 exec/s
+    * Persist  1000 iterations ~123 exec/s
+    * Persist 10000 iterations ~133 exec/s
+  
+2) Intel PT tracing
+  - The Intel PT log does not contain Block IDs or all branch targets
+  - Parsing large compressed logs is time consuming
+  - Native persistence mode is not yet implemented
+    : Work in progress using AVrf as hooking engine
+  - We can filter up to 4 address ranges or whole process
 
 
 ## 4.ioctlfuzzer:cr4sh
@@ -38,25 +54,13 @@ Windows XP, Vista, 2003 server, 2008 server, 7 (32bit and 64bit)
 ### Key ideas
 1) Hooking and interception
   The fuzzer's own driver hooks NtDeviceControlFile in order to take control of all IOCTL requests throughout the system.
-  
-__kernel_entry NTSTATUS NtDeviceIoControlFile(
-  IN HANDLE            FileHandle,
-  IN HANDLE            Event,
-  IN PIO_APC_ROUTINE   ApcRoutine,
-  IN PVOID             ApcContext,
-  OUT PIO_STATUS_BLOCK IoStatusBlock,
-  IN ULONG             IoControlCode,
-  IN PVOID             InputBuffer,
-  IN ULONG             InputBufferLength,
-  OUT PVOID            OutputBuffer,
-  IN ULONG             OutputBufferLength
-);
-  
-## 5.IOCTLbf
 
+2) Random syscall arguments or ioctl input
+  IOCTL을 처리하는 동안, fuzzer는 configuration file에 지정된 조건을 준수하는 IOCTL을 스푸핑한다.
+  스푸핑된 IOCTL은 입력 데이터를 제외하고 모든 점에서 원본 IRP와 동일하다. 이 데이터는 무작위로 생성된 퍼즈로 변경된다. 
 
-## 6.kAFL
+## 5.kAFL
 
-## 7.PTFuzz
+## 6.PTFuzz
 
 
