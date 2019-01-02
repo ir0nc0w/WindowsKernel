@@ -18,10 +18,8 @@ OS Kernel: Linux kernel, Akaros, Darwin/XNU, FreeBSD, Fuchsia, NetBSD, OpenBSD, 
 ### Key ideas
 
 
-
 ### Limitation
 Windows OS는 GCE(Google Computer Engine) 가상머신(VM)만  지원
-
 
 ## KernelFuzzer
 ### Purpose
@@ -38,8 +36,7 @@ Windows
   * Fuzzed Value Generator : Functions return fuzzed basic data types (ex. bool, int, float, etc)
   
 ### Key ideas
- - 
-
+- 
 
 ## WinAFL+IntelPT (yet uploaded)
 ### Purpose
@@ -56,12 +53,14 @@ Windows
     * Persist 10000 iterations ~133 exec/s
   
 2) Intel PT tracing
+  - Support control flow tracing
+   * Decoder can determine exact flow of software execution from trace log
+   * Target < 5% performance overhead
   - The Intel PT log does not contain Block IDs or all branch targets
   - Parsing large compressed logs is time consuming
   - Native persistence mode is not yet implemented
     : Work in progress using AVrf as hooking engine
-  - We can filter up to 4 address ranges or whole process
-
+  - We can filter up to 4 address ranges or whole proess
 
 ## ioctlfuzzer:cr4sh
 ### Purpose
@@ -77,9 +76,10 @@ Windows XP, Vista, 2003 server, 2008 server, 7 (32bit and 64bit)
 2) Random syscall arguments or ioctl input
   IOCTL을 처리하는 동안, fuzzer는 configuration file에 지정된 조건을 준수하는 IOCTL을 스푸핑한다.
   스푸핑된 IOCTL은 입력 데이터를 제외하고 모든 점에서 원본 IRP와 동일하다. 이 데이터는 무작위로 생성된 퍼즈로 변경된다. 
-
+ 
 ## kAFL
 
-## PTFuzz
+### Windows
+NTFS driver of Windows
 
 
