@@ -1,6 +1,6 @@
 # WindowsKernel
 
-## 1.Intro
+## Intro
 본 노트는 Windows kernel fuzzer를 조사 목적으로 작성한다. 정리는 아래와 같은 양식으로 정리한다. 
 
 * Name
@@ -8,7 +8,7 @@
 * Support OS
 * Key ideas
 
-## 2.Syzkaller
+## Syzkaller
 ### Purpose
 
 ### Support OS
@@ -22,7 +22,26 @@ OS Kernel: Linux kernel, Akaros, Darwin/XNU, FreeBSD, Fuchsia, NetBSD, OpenBSD, 
 ### Limitation
 Windows OS는 GCE(Google Computer Engine) 가상머신(VM)만  지원
 
-## 3.WinAFL+IntelPT (yet uploaded)
+
+## KernelFuzzer
+### Purpose
+Windows system API fuzzer
+
+### Support OS
+Windows 
+
+### Features
+- Decoupled components
+  * Knowledge Bases : OS API Knowledge Base, System Calls Knowledge Base
+  * Object Store : Keep track of handles to various objects
+  * Helper Functions : Generate, populate and return valid structures
+  * Fuzzed Value Generator : Functions return fuzzed basic data types (ex. bool, int, float, etc)
+  
+### Key ideas
+ - 
+
+
+## WinAFL+IntelPT (yet uploaded)
 ### Purpose
 
 ### Support OS
@@ -44,7 +63,7 @@ Windows OS는 GCE(Google Computer Engine) 가상머신(VM)만  지원
   - We can filter up to 4 address ranges or whole process
 
 
-## 4.ioctlfuzzer:cr4sh
+## ioctlfuzzer:cr4sh
 ### Purpose
 Searching vulnerabilities in Windowss kernel driver 
 
@@ -59,8 +78,8 @@ Windows XP, Vista, 2003 server, 2008 server, 7 (32bit and 64bit)
   IOCTL을 처리하는 동안, fuzzer는 configuration file에 지정된 조건을 준수하는 IOCTL을 스푸핑한다.
   스푸핑된 IOCTL은 입력 데이터를 제외하고 모든 점에서 원본 IRP와 동일하다. 이 데이터는 무작위로 생성된 퍼즈로 변경된다. 
 
-## 5.kAFL
+## kAFL
 
-## 6.PTFuzz
+## PTFuzz
 
 
