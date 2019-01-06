@@ -46,7 +46,7 @@ go func() {
       now := time.Now()
       diff := now.Sub(lastTime)
       lastTime = now
-      /* Atomic execution */ : Get the informations from fuzzer
+      /* Atomic execution : Get the informations from fuzzer */
       mgr.mu.Lock() // ----------------------------------------------------------
       ...
       mgr.fuzzingTime += diff * time.Duration(atomic.LoadUint32(&mgr.numFuzzing))
@@ -182,6 +182,7 @@ Above procedures, we can first summarize the syz-manager control flow.
 mgr.RunManager() --> mgr.vmLoop() --> 1) mgr.runInstance() or 2) repro.Run(...)
 
 Firstly, we see mgr.runInstance(idx) :
+
 ``` go
 /**/
 fwAddr, err := inst.Forward(mgr.port)
@@ -198,6 +199,8 @@ executorBin, err := inst.Copy(mgr.SyzExecutorBin)
 cmd := instance.FuzzerCmd(fuzzerBin, executorBin, fmt.Sprintf("vm-%v", index),
     mgr.cfg.TargetOs, mgr.cfg.TargetArch, fwdAddr, mgr.cfg.Sandbox, procs, fuzzerV,
     mgr.cfg.Cover, *flagDebug, false, false)
+/* var cmd gets string as below :
+$fuzzer -executor=$executor -name=$name -arch=$arch$osArg -manager=$fwdAddr -sandbox=$sandbox -procs=$procs -v=$verbosity -cover=$cover -debug=$test -test=$test$runtestArg */
 outc, errc, err := inst.Run(time.Hour, mgr.vmStop, cmd)
 ...
 // Monitor Execution
