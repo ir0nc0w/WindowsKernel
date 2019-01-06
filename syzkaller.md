@@ -205,7 +205,11 @@ outc, errc, err := inst.Run(time.Hour, mgr.vmStop, cmd)
 ...
 // Monitor Execution
 rep := inst.MonitorExecution(outc, errc, mgr.reporter, vm.ExitTimeout)
-
+if rep == nil {
+    // When above idx's fuzzer completes execution, logging in the file
+    log.Logf(0, "vm-%v: running for %v, restarting", index, time.Since(start))
+    return nil, nil
+} 
 ```
 
 
