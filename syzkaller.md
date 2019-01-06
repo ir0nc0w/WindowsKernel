@@ -115,6 +115,16 @@ mgr := &Manager{
     usedFiles:        make(map[string]time.Time),
 }    
 ```
+vmLoop() is in syz-manager/manager.go. VM runs 
+``` go
+...
+for shutdown != nil || len(instances) != vmCount {
+    mgr.mu.Lock()
+    phase := mgr.phase
+    mgr.mu.Unlock()
+
+
+```
 
 
 ##Send progData to executor
