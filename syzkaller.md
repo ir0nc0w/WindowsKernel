@@ -5,6 +5,9 @@
   This documentation will introduce some implement about syzkaller.
   
   1. Show you how syz-manager works
+  1-1. syz-manager HTTP (User interaction)
+  1-2. syz-manager SSH (syz-fuzzer in VM interaction)
+  1-3. syz-manager RPC (interaction b/w syz-manager & syz-fuzzer)
   2. Show you how fuzzer send data to executor and how executor execute a syscall.
   3. The sequence of syscalls generation
   4. User program minimize
