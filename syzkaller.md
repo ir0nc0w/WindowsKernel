@@ -63,7 +63,7 @@ go func() {
           numFuzzing, executed, signal, crashes, numReproducing) 
    }
 }()
-
+/* Write corpus metadata into file */
 if *flagBench != "" {
    f, err := os.OpenFile(*flagBench, os.O_WRONLY|os.O_CREATE|os.O_EXCL, osutil.DefaultFilePerm)
    ...
@@ -125,9 +125,86 @@ for shutdown != nil || len(instances) != vmCount {
     mgr.mu.Lock()
     phase := mgr.phase
     mgr.mu.Unlock()
-
+    
+    for crash := range pendingRepro {
+        if reproducing[crash.Title] {
+            continue
+        }
+        delete(pendingRepro, crash)
+        if !mgr.needRepro(crash) {
+            continue
+        }
+        log.Logf(1, "loop:add to repro queue '%v'", crash.Title)
+        reproducing[crash.Title] = true
+        reproQueue = append(reproQueue, crash)
+    }    
+    
+    log.Logf(1, "loop: phase=%v shutdown=%v instances=%v/%v %+v repro: pending=%v reproducing=%v queued=%v",
+        phase, shutdown == nil, len(instances), vmCount, instances,
+        len(pendingRepro), len(reproducing), len(reproQueue))
+    
+    canRepro := func() bool {
+        return phase >= phaseTriagedHub && 
+            len(reproQueue) != 0 && reproInstances+instancesPerRepro <= vmCount
+    }
+    
+    /* if crash be occured, run the repro.Run(...) func. else, run the mgr.runInstance(idx) func*/
+    if shutdonw != nil {
+        for canRepro() && len(instances) >= instancesPreRepro {
+            last := len(reproQueue) - 1
+            crash := reproQueue[last]
+            reproQueue[last] = nil
+            reproQueue = reproQueue[:last]
+            vmIndexes := append([]int{}, instances[len(instances)-instancesPerRepro:]...)
+            instances = instances[:len(instances)-instancesPerRepro]
+            reproInstances += instancesPerRepro
+            atomic.AddUint32(&mgr.numReproducing, 1)
+            log.Logf(1, "loop: starting repro of '%v' on instances %+v", crash.Title, vmIndexes)
+            go func() {
+                res, stats, err := repro.Run(crash.Output, mgr.cfg, mgr.reporter, mgr.vmPool, vmIndexes)
+                reproDone <- &ReproResult{vmIndexes, crash.Title, res, stats, err, crash.hub}
+            }()
+        }
+        for !canRepro() && len(instances) != 0 {
+            lastr := len(instances) - 1
+            idx := instances[last]
+            instances = instances[:last]
+            log.Logf(1, loop: starting instance %v", idx)
+            go func() {
+                crash, err := mgr.runInstance(idx)
+                runDone <- &RunResult{idx, crash, err}
+            }()
+        }
+    }
 
 ```
+Above procedures, we can first summarize the syz-manager control flow.
+mgr.RunManager() --> mgr.vmLoop() --> 1) mgr.runInstance() or 2) repro.Run(...)
+
+Firstly, we see mgr.runInstance(idx) :
+``` go
+/**/
+fwAddr, err := inst.Forward(mgr.port)
+...
+/**/
+fuzzerBin, err := inst.Copy(mgr.cfg.SyzFuzzerBin)
+...
+/**/
+executorBin, err := inst.Copy(mgr.SyzExecutorBin)
+...
+
+// Run the fuzzer binary.
+...
+cmd := instance.FuzzerCmd(fuzzerBin, executorBin, fmt.Sprintf("vm-%v", index),
+    mgr.cfg.TargetOs, mgr.cfg.TargetArch, fwdAddr, mgr.cfg.Sandbox, procs, fuzzerV,
+    mgr.cfg.Cover, *flagDebug, false, false)
+outc, errc, err := inst.Run(time.Hour, mgr.vmStop, cmd)
+...
+// Monitor Execution
+rep := inst.MonitorExecution(outc, errc, mgr.reporter, vm.ExitTimeout)
+
+```
+
 
 
 ##Send progData to executor
